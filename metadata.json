@@ -1,0 +1,6 @@
+{
+  "name": "Dentist Schedule Manager",
+  "description": "A private weekly appointment management tool for the dentist.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
