@@ -21,6 +21,7 @@ export default function Calendar() {
 
   const [newAppointment, setNewAppointment] = useState({ patient_name: '', service_category: '', requested_time: '', notes: '' });
   const [workingWindows, setWorkingWindows] = useState<any>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const getDistance = (touches: TouchList) => {
     const dx = touches[0].pageX - touches[1].pageX;
@@ -32,6 +33,14 @@ export default function Calendar() {
     fetchAppointments();
     fetchWorkingWindows();
     fetchServices();
+
+    const interval = setInterval(async () => {
+      setIsRefreshing(true);
+      await fetchAppointments();
+      setIsRefreshing(false);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [currentWeekStart]);
 
   const fetchServices = async () => {
@@ -119,7 +128,7 @@ export default function Calendar() {
           <button onClick={() => setCurrentWeekStart(subWeeks(currentWeekStart, 1))} className="flex items-center gap-1 p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition"><ChevronLeft size={16} /> Попередній</button>
           <button onClick={() => setCurrentWeekStart(addWeeks(currentWeekStart, 1))} className="flex items-center gap-1 p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition">Наступний <ChevronRight size={16} /></button>
         </div>
-        <h2 className="text-xl font-bold">{format(currentWeekStart, 'MMMM yyyy', { locale: uk })}</h2>
+        <h2 className="text-xl font-bold">{format(currentWeekStart, 'MMMM yyyy', { locale: uk })} {isRefreshing && <span className="text-xs text-blue-500 ml-2">Оновлення...</span>}</h2>
       </div>
       <div className="flex gap-4 mb-4 text-xs items-center flex-wrap">
         <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-300 rounded border border-gray-300"></div> Підтверджено</div>
