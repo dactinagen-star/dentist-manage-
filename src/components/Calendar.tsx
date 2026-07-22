@@ -99,6 +99,7 @@ export default function Calendar() {
       case 'cancelled': return 'bg-red-300';
       case 'declined': return 'bg-gray-400';
       case 'pending': return 'bg-blue-300';
+      case 'completed': return 'bg-purple-300';
       default: return 'bg-gray-400';
     }
   };
@@ -113,8 +114,9 @@ export default function Calendar() {
         </div>
         <h2 className="text-xl font-bold">{format(currentWeekStart, 'MMMM yyyy', { locale: uk })}</h2>
       </div>
-      <div className="flex gap-4 mb-4 text-xs items-center">
+      <div className="flex gap-4 mb-4 text-xs items-center flex-wrap">
         <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-300 rounded border border-gray-300"></div> Підтверджено</div>
+        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-purple-300 rounded border border-gray-300"></div> Завершено</div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-300 rounded border border-gray-300"></div> Скасовано пацієнтом</div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded border border-gray-300"></div> Відхилено вами</div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-300 rounded border border-gray-300"></div> Очікується підтвердження</div>
