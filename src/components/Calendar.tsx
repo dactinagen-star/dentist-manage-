@@ -129,6 +129,7 @@ export default function Calendar() {
         <button onClick={() => setShowNewAppointmentModal(true)} className="p-2 bg-green-600 text-white rounded">+ Новий запис</button>
         <div className="flex gap-2">
           <button onClick={() => setCurrentWeekStart(subWeeks(currentWeekStart, 1))} className="flex items-center gap-1 p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition"><ChevronLeft size={16} /> Попередній</button>
+          <button onClick={() => setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))} className="flex items-center p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition">Сьогодні</button>
           <button onClick={() => setCurrentWeekStart(addWeeks(currentWeekStart, 1))} className="flex items-center gap-1 p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition">Наступний <ChevronRight size={16} /></button>
         </div>
         <h2 className="text-xl font-bold">{format(currentWeekStart, 'MMMM yyyy', { locale: uk })}</h2>
@@ -220,7 +221,7 @@ export default function Calendar() {
                       {(() => {
                           const start = new Date(app.requested_time);
                           const end = new Date(start.getTime() + app.estimated_duration_minutes * 60000);
-                          return `${formatInTimeZone(start, 'Europe/Kyiv', 'HH:mm', { locale: uk })} - ${formatInTimeZone(end, 'Europe/Kyiv', 'HH:mm', { locale: uk })} ${app.patient_name}`;
+                          return `${formatInTimeZone(start, 'Europe/Kyiv', 'HH:mm', { locale: uk })} - ${formatInTimeZone(end, 'Europe/Kyiv', 'HH:mm', { locale: uk })} ${app.patient_name} ${app.service_category?.toLowerCase() || ''}`;
                       })()} {app.telegram_id === 0 ? '⚠️' : ''}
                     </span>
                   </div>
