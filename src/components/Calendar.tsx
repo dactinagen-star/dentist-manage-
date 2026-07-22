@@ -132,7 +132,7 @@ export default function Calendar() {
           }} className="p-1 bg-gray-500 text-white rounded text-xs">Скинути</button>
         </div>
       </div>
-      <div className="relative overflow-auto border border-gray-200 rounded-lg p-2" style={{ cursor: 'grab' }}>
+      <div className="relative overflow-auto border border-gray-200 rounded-lg p-2 h-[700px]" style={{ cursor: 'grab' }}>
         <button onClick={() => {
           let text = "";
           days.forEach((day, index) => {
