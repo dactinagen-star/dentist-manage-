@@ -36,8 +36,11 @@ export default function Calendar() {
 
     const interval = setInterval(async () => {
       setIsRefreshing(true);
+      const start = Date.now();
       await fetchAppointments();
-      setIsRefreshing(false);
+      const elapsed = Date.now() - start;
+      const delay = Math.max(0, 2000 - elapsed);
+      setTimeout(() => setIsRefreshing(false), delay);
     }, 30000);
 
     return () => clearInterval(interval);
@@ -128,24 +131,29 @@ export default function Calendar() {
           <button onClick={() => setCurrentWeekStart(subWeeks(currentWeekStart, 1))} className="flex items-center gap-1 p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition"><ChevronLeft size={16} /> Попередній</button>
           <button onClick={() => setCurrentWeekStart(addWeeks(currentWeekStart, 1))} className="flex items-center gap-1 p-2 bg-blue-100 border border-blue-300 rounded-md hover:bg-blue-200 active:bg-transparent transition">Наступний <ChevronRight size={16} /></button>
         </div>
-        <h2 className="text-xl font-bold">{format(currentWeekStart, 'MMMM yyyy', { locale: uk })} {isRefreshing && <span className="text-xs text-blue-500 ml-2">Оновлення...</span>}</h2>
+        <h2 className="text-xl font-bold">{format(currentWeekStart, 'MMMM yyyy', { locale: uk })}</h2>
       </div>
-      <div className="flex gap-4 mb-4 text-xs items-center flex-wrap">
-        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-300 rounded border border-gray-300"></div> Підтверджено</div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-purple-300 rounded border border-gray-300"></div> Завершено</div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-300 rounded border border-gray-300"></div> Скасовано пацієнтом</div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded border border-gray-300"></div> Відхилено вами</div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-300 rounded border border-gray-300"></div> Очікується підтвердження</div>
-        <div className="flex gap-2">
-          <button onClick={() => {
-              const newScale = scale + 0.1;
-              setScale(newScale);
-              controls.start({ scale: newScale });
-          }} className="p-1 bg-blue-500 text-white rounded text-xs">Збільшити</button>
-          <button onClick={() => {
-              setScale(1);
-              controls.start({ scale: 1, x: 0, y: 0 });
-          }} className="p-1 bg-gray-500 text-white rounded text-xs">Скинути</button>
+      <div className="flex justify-between items-center mb-2 text-xs flex-wrap">
+        <div className="flex gap-4 items-center flex-wrap">
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-300 rounded border border-gray-300"></div> Підтверджено</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-purple-300 rounded border border-gray-300"></div> Завершено</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-300 rounded border border-gray-300"></div> Скасовано пацієнтом</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded border border-gray-300"></div> Відхилено вами</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-300 rounded border border-gray-300"></div> Очікується підтвердження</div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-2">
+            <button onClick={() => {
+                const newScale = scale + 0.1;
+                setScale(newScale);
+                controls.start({ scale: newScale });
+            }} className="p-1 bg-blue-500 text-white rounded text-xs">Збільшити</button>
+            <button onClick={() => {
+                setScale(1);
+                controls.start({ scale: 1, x: 0, y: 0 });
+            }} className="p-1 bg-gray-500 text-white rounded text-xs">Скинути</button>
+          </div>
+          <span className="text-xs text-blue-500 w-20 text-right h-4">{isRefreshing ? "Оновлення..." : ""}</span>
         </div>
       </div>
       <div
