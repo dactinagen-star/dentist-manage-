@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, addWeeks, subWeeks } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -17,9 +17,16 @@ export default function Calendar() {
   const [isChecking, setIsChecking] = useState(false);
   const [scale, setScale] = useState(1);
   const controls = useAnimation();
+  const initialDistance = useRef(0);
 
   const [newAppointment, setNewAppointment] = useState({ patient_name: '', service_category: '', requested_time: '', notes: '' });
   const [workingWindows, setWorkingWindows] = useState<any>({});
+
+  const getDistance = (touches: TouchList) => {
+    const dx = touches[0].pageX - touches[1].pageX;
+    const dy = touches[0].pageY - touches[1].pageY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
 
   useEffect(() => {
     fetchAppointments();
@@ -132,7 +139,25 @@ export default function Calendar() {
           }} className="p-1 bg-gray-500 text-white rounded text-xs">Скинути</button>
         </div>
       </div>
-      <div className="relative overflow-auto border border-gray-200 rounded-lg p-2 h-[700px]" style={{ cursor: 'grab' }}>
+      <div
+        className="relative overflow-auto border border-gray-200 rounded-lg p-2 h-[700px]"
+        style={{ cursor: 'grab' }}
+        onTouchStart={(e) => {
+          if (e.touches.length === 2) {
+            initialDistance.current = getDistance(e.touches);
+          }
+        }}
+        onTouchMove={(e) => {
+          if (e.touches.length === 2) {
+            const newDistance = getDistance(e.touches);
+            const diff = newDistance - initialDistance.current;
+            const newScale = Math.max(0.5, Math.min(3, scale + diff / 500));
+            setScale(newScale);
+            controls.start({ scale: newScale });
+            initialDistance.current = newDistance;
+          }
+        }}
+      >
         <button onClick={() => {
           let text = "";
           days.forEach((day, index) => {
