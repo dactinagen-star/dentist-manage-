@@ -136,11 +136,11 @@ export default function Calendar() {
       </div>
       <div className="flex justify-between items-center mb-2 text-xs flex-wrap">
         <div className="flex gap-4 items-center flex-wrap">
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-300 rounded border border-gray-300"></div> Підтверджено</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-purple-300 rounded border border-gray-300"></div> Завершено</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-300 rounded border border-gray-300"></div> Скасовано пацієнтом</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded border border-gray-300"></div> Відхилено вами</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-300 rounded border border-gray-300"></div> Очікується підтвердження</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-300 rounded border border-gray-300 shadow-[0_0_2px_1px_white]"></div> Підтверджено</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-purple-300 rounded border border-gray-300 shadow-[0_0_2px_1px_white]"></div> Завершено</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-300 rounded border border-gray-300 shadow-[0_0_2px_1px_white]"></div> Скасовано пацієнтом</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-400 rounded border border-gray-300 shadow-[0_0_2px_1px_white]"></div> Відхилено вами</div>
+          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-300 rounded border border-gray-300 shadow-[0_0_2px_1px_white]"></div> Очікується підтвердження</div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
