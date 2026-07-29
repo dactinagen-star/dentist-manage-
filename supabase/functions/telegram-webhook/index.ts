@@ -16,7 +16,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 // gemini-2.5-flash знято з підтримки Google (липень 2026) — перевір на момент
 // деплою актуальну назву моделі через змінну середовища GEMINI_MODEL, не покладайся
 // на цей дефолт; Google міняє лінійку Flash доволі часто.
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.1-flash-lite';
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.5-flash';
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') ?? ''; // порожньо = тестовий режим без реального Telegram
 const TELEGRAM_WEBHOOK_SECRET = Deno.env.get('TELEGRAM_WEBHOOK_SECRET_TOKEN') ?? ''; // порожньо = перевірку пропускаємо (тест)
@@ -565,7 +565,11 @@ Deno.serve(async (req) => {
       const messageId: number | undefined = cq.message?.message_id;
       const telegramId: number = cq.from.id;
       const chatId: number = cq.message?.chat?.id ?? telegramId;
-      const businessConnectionId: string | null = cq.business_connection_id ?? null;
+      // Точне розташування business_connection_id для CallbackQuery не підтверджено джерелами
+      // однозначно (на відміну від Message, де це поле власне повідомлення) — перевіряємо
+      // обидва правдоподібні варіанти, щоб не залежати від здогадки.
+      const businessConnectionId: string | null =
+        cq.business_connection_id ?? cq.message?.business_connection_id ?? null;
 
       await answerCallbackQuery(cq.id); // прибрати "годинник" на кнопці в клієнті
 
@@ -809,20 +813,23 @@ Deno.serve(async (req) => {
     const telegramId: number = update.from.id;
     const chatId: number = update.chat.id;
     const text: string = update.text ?? '';
+    // business_connection_id — поле всередині самого message-об'єкта (update.business_message),
+    // НЕ окреме поле на верхньому рівні Update. Раніше читали з body.business_connection_id
+    // (якого там нема) — тому воно завжди було null, і відповіді йшли без business_connection_id.
+    const businessConnectionId: string | null = isBusinessMessage
+      ? (update.business_connection_id ?? null)
+      : null;
 
     // /start — показуємо меню замість того, щоб одразу вести в розмову з агентом
     if (text.trim() === '/start') {
       await sendTelegramMessage(
         chatId,
         'Вітаю! Я асистент стоматологічної клініки. Оберіть дію або просто напишіть, що вас турбує.',
-        isBusinessMessage ? (body.business_connection_id ?? null) : null,
+        businessConnectionId,
         MAIN_MENU_KEYBOARD,
       );
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
-    const businessConnectionId: string | null = isBusinessMessage
-      ? (body.business_connection_id ?? null)
-      : null;
 
     // --- Business Mode: чи це лікар пише вручну? ---
     if (isBusinessMessage && businessConnectionId) {
