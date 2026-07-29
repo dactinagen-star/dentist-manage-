@@ -16,7 +16,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 // gemini-2.5-flash знято з підтримки Google (липень 2026) — перевір на момент
 // деплою актуальну назву моделі через змінну середовища GEMINI_MODEL, не покладайся
 // на цей дефолт; Google міняє лінійку Flash доволі часто.
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.5-flash';
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.1-flash-lite';
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') ?? ''; // порожньо = тестовий режим без реального Telegram
 const TELEGRAM_WEBHOOK_SECRET = Deno.env.get('TELEGRAM_WEBHOOK_SECRET_TOKEN') ?? ''; // порожньо = перевірку пропускаємо (тест)
