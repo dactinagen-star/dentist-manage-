@@ -481,6 +481,7 @@ ${currentDateTimeKyiv()}
 ${servicesText}`;
 
   const history = await loadHistory(telegramId);
+  const isFirstMessage = history.length === 0; // нема історії — це перше звернення пацієнта взагалі
   await saveMessage(telegramId, 'user', text);
   let contents = [...history, { role: 'user', parts: [{ text }] }];
 
@@ -522,7 +523,11 @@ ${servicesText}`;
 
   if (finalText) {
     await saveMessage(telegramId, 'model', finalText);
-    await sendTelegramMessage(chatId, finalText, businessConnectionId, pendingKeyboard ?? undefined);
+    // Кнопки функції (напр. вибір слоту) мають пріоритет над загальним меню.
+    // Якщо це перше повідомлення розмови й агент не викликав жодної функції —
+    // додаємо головне меню як надійний запасний шлях, поки промт ще допрацьовується.
+    const keyboard = pendingKeyboard ?? (isFirstMessage ? MAIN_MENU_KEYBOARD : undefined);
+    await sendTelegramMessage(chatId, finalText, businessConnectionId, keyboard);
   }
 
   return finalText;
