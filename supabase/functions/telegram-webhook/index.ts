@@ -54,6 +54,7 @@ const SYSTEM_PROMPT_STATIC = `
 6. Коли пацієнт обрав варіант (кнопкою) або сам написав конкретну дату/час текстом — виклич check_availability для цього часу.
 7. Якщо вільно — виклич book_appointment.
 8. Якщо зайнято — повідом без деталей причини, запропонуй ще раз find_available_slots або інший час.
+8а. Якщо book_appointment повернув reason: "appointment_limit_reached" — це НЕ про зайнятий час. Повідом пацієнту, що у нього вже є 3 активні записи, і щоб додати новий, спершу треба завершити чи скасувати один із наявних, або звернутись до адміністратора клініки. НЕ пропонуй інший час у цьому випадку.
 9. Після успішного book_appointment скажи, що запис ВНЕСЕНО (не "підтверджено") і що прийде окреме нагадування.
 
 ## Контактна інформація (якщо запитають)
@@ -151,7 +152,8 @@ async function fetchActiveServicesText(): Promise<string> {
   const { data, error } = await supabase
     .from('services_kb')
     .select('category, description, typical_duration_minutes, symptom_keywords')
-    .eq('active', true);
+    .eq('active', true)
+    .order('sort_order', { ascending: true });
   if (error || !data) return '(довідник послуг тимчасово недоступний)';
   return data
     .map(
@@ -282,6 +284,21 @@ async function insertAppointment(
   args: { patientName: string; serviceCategory: string; requestedTime: string | null; notes: string | null },
   ctx: { telegramId: number; businessConnectionId: string | null },
 ): Promise<{ success: boolean; reason?: string }> {
+  // Ліміт активних записів на пацієнта. telegram_id = 0 — сентинел для ручних записів
+  // з адмін-панелі (не через бота), він спільний для всіх таких пацієнтів і НЕ має
+  // рахуватись як один акаунт — інакше перший-ліпший "з вулиці" запис заблокує решту.
+  if (ctx.telegramId !== 0) {
+    const { count } = await supabase
+      .from('appointments')
+      .select('id', { count: 'exact', head: true })
+      .eq('telegram_id', ctx.telegramId)
+      .in('status', ['pending', 'confirmed'])
+      .or(`requested_time.is.null,requested_time.gte.${new Date().toISOString()}`);
+    if ((count ?? 0) >= 3) {
+      return { success: false, reason: 'appointment_limit_reached' };
+    }
+  }
+
   const { data: svc } = await supabase
     .from('services_kb')
     .select('typical_duration_minutes')
@@ -676,7 +693,8 @@ Deno.serve(async (req) => {
         const { data: services } = await supabase
           .from('services_kb')
           .select('category, description')
-          .eq('active', true);
+          .eq('active', true)
+          .order('sort_order', { ascending: true });
 
         const buttons = (services ?? []).map((s) => [
           { text: s.description, callback_data: `pick_service|${s.category}` },
@@ -717,7 +735,11 @@ Deno.serve(async (req) => {
         );
 
         if (!result.success) {
-          await sendTelegramMessage(chatId, 'На жаль, цей час щойно зайняли — спробуйте, будь ласка, ще раз.', businessConnectionId, { inline_keyboard: [[BACK_TO_MENU_BUTTON]] }, messageId);
+          const failText =
+            result.reason === 'appointment_limit_reached'
+              ? 'У вас уже є 3 активні записи. Щоб додати новий, спершу завершіть або скасуйте один із наявних, або зверніться до адміністратора клініки.'
+              : 'На жаль, цей час щойно зайняли — спробуйте, будь ласка, ще раз.';
+          await sendTelegramMessage(chatId, failText, businessConnectionId, { inline_keyboard: [[BACK_TO_MENU_BUTTON]] }, messageId);
           return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
         }
 
