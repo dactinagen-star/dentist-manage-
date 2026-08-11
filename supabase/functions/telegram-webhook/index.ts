@@ -508,7 +508,6 @@ ${currentDateTimeKyiv()}
 ${servicesText}`;
 
   const history = await loadHistory(telegramId);
-  const isFirstMessage = history.length === 0; // нема історії — це перше звернення пацієнта взагалі
   await saveMessage(telegramId, 'user', text);
   let contents = [...history, { role: 'user', parts: [{ text }] }];
 
@@ -548,13 +547,20 @@ ${servicesText}`;
     finalText = 'Перепрошую, зараз технічна затримка на нашому боці. Спробуйте, будь ласка, написати ще раз за кілька хвилин.';
   }
 
+  if (!finalText) {
+    // Не було винятку, але й немає тексту — заблокований відповідю безпеки, порожні
+    // candidates, або 5 ітерацій циклу вичерпались без фінального тексту. Без цього
+    // патова: пацієнт не отримує НІЧОГО, а в логах теж не видно причини.
+    console.error('Gemini returned no usable text (empty candidates or loop exhausted)');
+    finalText = 'Перепрошую, зараз технічна затримка на нашому боці. Спробуйте, будь ласка, написати ще раз за кілька хвилин.';
+  }
+
   if (finalText) {
     await saveMessage(telegramId, 'model', finalText);
-    // Кнопки функції (напр. вибір слоту) мають пріоритет над загальним меню.
-    // Перше повідомлення розмови без виклику функції — повний головний список опцій.
-    // Усі наступні чисто текстові відповіді агента — компактна кнопка "🏠 Головне
-    // меню", щоб пацієнт завжди мав шлях назад, а не лишався в тексті без жодних кнопок.
-    const keyboard = pendingKeyboard ?? (isFirstMessage ? MAIN_MENU_KEYBOARD : { inline_keyboard: [[BACK_TO_MENU_BUTTON]] });
+    // Кнопки функції (напр. вибір слоту) мають пріоритет. Якщо своєї клавіатури немає —
+    // завжди повний головний список опцій (не компактна кнопка "🏠"), щоб пацієнт із
+    // перших повідомлень бачив і звикав користуватись кнопками, а не тільки текстом.
+    const keyboard = pendingKeyboard ?? MAIN_MENU_KEYBOARD;
     await sendTelegramMessage(chatId, finalText, businessConnectionId, keyboard);
   }
 
