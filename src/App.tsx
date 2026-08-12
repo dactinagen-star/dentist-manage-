@@ -9,6 +9,7 @@ import Calendar from './components/Calendar';
 import Services from './components/Services';
 import { Session } from '@supabase/supabase-js';
 import { LogOut } from 'lucide-react';
+import { PWAUpdateBanner } from './components/PWAUpdateBanner';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -34,6 +35,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-pattern">
+      <PWAUpdateBanner />
       <nav className="nav-bg-pattern shadow-sm p-4 flex gap-4 items-center">
         <button 
           onClick={() => setView('calendar')}
