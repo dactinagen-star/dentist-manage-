@@ -26,7 +26,28 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 🎯 ФІКС БІЛОГО ЕКРАНА: Network-First для навігації (HTML)
 self.addEventListener('fetch', (event) => {
+  // Якщо це відкриття сторінки/додатка (запит index.html)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Оновлюємо кеш свіжим index.html з мережі
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put('/index.html', networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => {
+          // Якщо немає інтернету — віддаємо закешований index.html
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
+  // Для решти static-файлів залишаємо Cache-First або мережу
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
