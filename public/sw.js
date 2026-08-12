@@ -1,7 +1,6 @@
 const CACHE_NAME = 'app-shell-v20260812';
 const ASSETS_TO_CACHE = [
   '/',
-  '/index.html',
 ];
 
 self.addEventListener('install', (event) => {
