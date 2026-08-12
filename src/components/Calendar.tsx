@@ -4,7 +4,7 @@ import { startOfWeek, endOfWeek, eachDayOfInterval, format, addWeeks, subWeeks }
 import { formatInTimeZone } from 'date-fns-tz';
 import { uk } from 'date-fns/locale';
 import { motion, useAnimation } from 'framer-motion';
-import { Copy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Copy, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import AppointmentModal from './AppointmentModal';
 
 export default function Calendar() {
@@ -22,6 +22,12 @@ export default function Calendar() {
   const [newAppointment, setNewAppointment] = useState({ patient_name: '', service_category: '', requested_time: '', notes: '' });
   const [workingWindows, setWorkingWindows] = useState<any>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleCompleteAppointment = async (e: React.MouseEvent, app: any) => {
+    e.stopPropagation();
+    await supabase.from('appointments').update({ status: 'completed' }).eq('id', app.id);
+    fetchAppointments();
+  };
 
   const getDistance = (touches: TouchList) => {
     const dx = touches[0].pageX - touches[1].pageX;
@@ -198,7 +204,7 @@ export default function Calendar() {
             if (index < days.length - 1) text += "\n";
           });
           navigator.clipboard.writeText(text);
-        }} className="absolute top-2 right-2 p-2 bg-gray-100 hover:bg-gray-200 rounded z-10">
+        }} className={`absolute top-2 right-2 p-2 bg-gray-100 hover:bg-gray-200 rounded z-10 ${selectedAppointment ? 'hidden' : ''}`}>
           <Copy size={16} />
         </button>
         <motion.div
@@ -216,7 +222,12 @@ export default function Calendar() {
                 .filter(app => format(new Date(app.requested_time), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'))
                 .sort((a, b) => new Date(a.requested_time).getTime() - new Date(b.requested_time).getTime())
                 .map(app => (
-                  <div key={app.id} onClick={() => setSelectedAppointment(app)} className={`p-1 mb-1 text-xs rounded cursor-pointer ${getStatusColor(app.status)} ${app.telegram_id === 0 ? 'border-2 border-dashed border-gray-400' : ''}`}>
+                  <div key={app.id} onClick={() => setSelectedAppointment(app)} className={`p-1 mb-1 text-xs rounded cursor-pointer ${getStatusColor(app.status)} ${app.telegram_id === 0 ? 'border-2 border-dashed border-gray-400' : ''} relative`}>
+                    {app.status !== 'completed' && !selectedAppointment && (
+                      <button onClick={(e) => handleCompleteAppointment(e, app)} className="absolute top-0 right-0 p-1 bg-white rounded-full z-10">
+                        <Check size={16} className="text-green-600" />
+                      </button>
+                    )}
                     <span className="font-bold [text-shadow:_0_0_2px_white]" title={app.telegram_id === 0 ? "Запис без Telegram — автоматичні нагадування пацієнту не прийдуть" : ""}>
                       {(() => {
                           const start = new Date(app.requested_time);
