@@ -9,6 +9,7 @@ type Service = {
   price_uah: number;
   symptom_keywords: string[];
   active: boolean;
+  sort_order: number;
 };
 
 export default function Services() {
@@ -20,7 +21,7 @@ export default function Services() {
   }, []);
 
   const fetchServices = async () => {
-    const { data } = await supabase.from('services_kb').select('*').order('active', { ascending: false }).order('category');
+    const { data } = await supabase.from('services_kb').select('*').order('sort_order', { ascending: true }).order('active', { ascending: false });
     setServices(data || []);
   };
 
@@ -47,7 +48,7 @@ export default function Services() {
             <div onClick={() => setEditingService(s)} className="cursor-pointer">
               <h3 className="font-bold">{s.category}</h3>
               <p className="text-sm">{s.description}</p>
-              <p className="text-sm text-gray-500">{s.typical_duration_minutes} хв • {s.price_uah} грн</p>
+              <p className="text-sm text-gray-500">Порядок: {s.sort_order} • {s.typical_duration_minutes} хв • {s.price_uah} грн</p>
               <div className="flex gap-1 mt-2">
                 {s.symptom_keywords?.map(k => <span key={k} className="bg-blue-50 text-blue-800 text-xs px-2 py-1 rounded">{k}</span>)}
               </div>
@@ -66,6 +67,7 @@ export default function Services() {
             <textarea placeholder="Опис" value={editingService.description || ''} onChange={e => setEditingService({...editingService, description: e.target.value})} className="w-full p-2 mb-2 border rounded" />
             <input type="number" placeholder="Хвилини" value={editingService.typical_duration_minutes || ''} onChange={e => setEditingService({...editingService, typical_duration_minutes: parseInt(e.target.value)})} className="w-full p-2 mb-2 border rounded" />
             <input type="number" placeholder="Ціна (грн)" value={editingService.price_uah || ''} onChange={e => setEditingService({...editingService, price_uah: parseInt(e.target.value)})} className="w-full p-2 mb-2 border rounded" />
+            <input type="number" placeholder="Порядковий номер" value={editingService.sort_order || ''} onChange={e => setEditingService({...editingService, sort_order: parseInt(e.target.value)})} className="w-full p-2 mb-2 border rounded" />
             <input placeholder="Ключові слова (через кому)" value={editingService.symptom_keywords?.join(', ') || ''} onChange={e => setEditingService({...editingService, symptom_keywords: e.target.value.split(',').map(s => s.trim())})} className="w-full p-2 mb-2 border rounded" />
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setEditingService(null)} className="p-2 bg-gray-200 rounded">Скасувати</button>
