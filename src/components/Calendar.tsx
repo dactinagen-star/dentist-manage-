@@ -213,9 +213,9 @@ export default function Calendar() {
           initial={{ scale: 1 }}
           animate={controls}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="grid grid-cols-7 gap-1 p-1"
+          className={`grid ${scale >= 0.9 ? 'grid-cols-5' : 'grid-cols-7'} gap-1 p-1`}
         >
-          {days.map(day => (
+          {days.filter((_, index) => scale < 0.9 || index < 5).map(day => (
             <div key={day.toString()} className={`border p-2 min-h-[300px] ${!workingWindows[format(day, 'yyyy-MM-dd')] ? 'bg-gray-100' : 'bg-white'}`}>
               <div className="font-semibold">{format(day, 'EEE dd', { locale: uk })}</div>
               {appointments
